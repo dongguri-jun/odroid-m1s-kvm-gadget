@@ -1,0 +1,15 @@
+# Local extraction and build artifacts
+*.img
+*.img.xz
+*.dtb
+*.dts
+*.log
+
+# Temporary files
+.tmp/
+tmp/
+
+# Editor files
+.DS_Store
+*.swp
+*.swo
