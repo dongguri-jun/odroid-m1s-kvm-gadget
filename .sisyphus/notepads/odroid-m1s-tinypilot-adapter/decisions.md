@@ -32,3 +32,9 @@
 - Bound gadget detection must read `UDC` content instead of using file size checks, because configfs pseudo-file sizes are not reliable.
 - Both setup and teardown reject empty gadget names, `.`/`..`, and names containing `/` before building configfs paths.
 - T2 evidence explicitly distinguishes pre-hardware static fail-path verification from runtime missing-configfs validation, which remains part of real-device T5/T6 evidence.
+
+## 2026-06-07 Task: pre-hardware-test-mode
+
+- Add `--test-root` to setup/teardown so fake configfs and fake `/dev/hidg*` nodes can be tested without privileged access or ODROID hardware.
+- Keep fake-root behavior explicitly separate from real hardware support claims; it verifies script order and cleanup only.
+- Document 24.04 HID-enabled kernel work as a checklist and verification gate, not as a supported prebuilt package.

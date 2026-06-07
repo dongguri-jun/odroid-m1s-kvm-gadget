@@ -410,9 +410,9 @@ Wave 4: Automation and release readiness
   **Parallelization**: Can Parallel: YES | Wave 4 | Blocks: T5 for 24.04, T14 | Blocked By: kernel source/package availability
 
   **Acceptance Criteria**:
-  - [ ] Required kernel options are listed.
-  - [ ] Build/package/install path is documented or explicitly marked pending.
-  - [ ] Support matrix reflects exact verification state.
+  - [x] Required kernel options are listed.
+  - [x] Build/package/install path is documented or explicitly marked pending.
+  - [x] Support matrix reflects exact verification state.
 
   **QA Scenarios**:
   ```text
@@ -475,7 +475,9 @@ As of 2026-06-07:
 - T2 is complete: `scripts/setup-hid-gadget.sh` and `.sisyphus/evidence/task-2-setup-bash-n.txt` exist.
 - T3 is complete: `scripts/teardown-hid-gadget.sh` and `.sisyphus/evidence/task-3-no-rm-rf.txt` exist.
 - T4 is complete: HID report examples exist under `examples/`, with `.sisyphus/evidence/task-4-report-example-grep.txt`.
-- T5 is the next planned task: verify kernel and UDC runtime on real ODROID M1S hardware.
+- T2/T3 gained fake-root regression coverage: `tests/test-hid-gadget-fake-root.sh` and `.sisyphus/evidence/task-2-3-fake-root-regression.txt`.
+- T12 is partially complete: `docs/24.04-kernel.md` now documents the HID-enabled kernel preparation path and `.sisyphus/evidence/task-12-kernel-requirements.txt` records required config references.
+- T5 is still the next critical-path task: verify kernel and UDC runtime on real ODROID M1S hardware.
 - Real-device HID validation is pending.
 - 24.04 stock kernel is not HID-ready based on static image inspection.
 - The current safe status is `PRE-HARDWARE PREPARATION`.
