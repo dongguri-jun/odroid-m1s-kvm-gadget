@@ -26,3 +26,9 @@
 - Teardown is idempotent for missing paths and missing gadget state, but it only targets the named gadget directory.
 - Teardown unbinds `UDC` before removing config symlinks or HID function directories.
 - Teardown uses only explicit `rm` for symlinks/files and `rmdir` for directories; recursive deletion remains forbidden.
+
+## 2026-06-07 Task: oracle-follow-up-t2-t3
+
+- Bound gadget detection must read `UDC` content instead of using file size checks, because configfs pseudo-file sizes are not reliable.
+- Both setup and teardown reject empty gadget names, `.`/`..`, and names containing `/` before building configfs paths.
+- T2 evidence explicitly distinguishes pre-hardware static fail-path verification from runtime missing-configfs validation, which remains part of real-device T5/T6 evidence.

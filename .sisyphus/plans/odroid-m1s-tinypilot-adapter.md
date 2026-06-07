@@ -186,7 +186,7 @@ Wave 4: Automation and release readiness
   - [x] `bash -n scripts/setup-hid-gadget.sh`
   - [x] `shellcheck scripts/setup-hid-gadget.sh` if shellcheck is available
   - [x] Script has `--help`, `--force`, and `--udc` support or explicitly documents why not.
-  - [x] Script fails safely when `/sys/kernel/config/usb_gadget` is missing.
+  - [x] Script has an explicit safe-failure code path when `/sys/kernel/config/usb_gadget` is missing; runtime failure validation remains part of T5/T6 hardware evidence.
 
   **QA Scenarios**:
   ```text
