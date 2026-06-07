@@ -174,7 +174,7 @@ Wave 4: Automation and release readiness
     Evidence: .sisyphus/evidence/task-1-hid-design-grep.txt
   ```
 
-- [ ] 2. Implement manual HID setup script
+- [x] 2. Implement manual HID setup script
 
   **What to do**: Create `scripts/setup-hid-gadget.sh` that performs root checks, configfs mount checks, kernel feature checks, stale gadget checks, keyboard-first configfs setup, mouse-second setup, UDC binding, and post-bind `/dev/hidg0`/`/dev/hidg1` validation.
 
@@ -183,10 +183,10 @@ Wave 4: Automation and release readiness
   **Parallelization**: Can Parallel: PARTIAL | Wave 1 | Blocks: T6, T8, T13 | Blocked By: T1
 
   **Acceptance Criteria**:
-  - [ ] `bash -n scripts/setup-hid-gadget.sh`
-  - [ ] `shellcheck scripts/setup-hid-gadget.sh` if shellcheck is available
-  - [ ] Script has `--help`, `--force`, and `--udc` support or explicitly documents why not.
-  - [ ] Script fails safely when `/sys/kernel/config/usb_gadget` is missing.
+  - [x] `bash -n scripts/setup-hid-gadget.sh`
+  - [x] `shellcheck scripts/setup-hid-gadget.sh` if shellcheck is available
+  - [x] Script has `--help`, `--force`, and `--udc` support or explicitly documents why not.
+  - [x] Script fails safely when `/sys/kernel/config/usb_gadget` is missing.
 
   **QA Scenarios**:
   ```text
@@ -472,7 +472,8 @@ Wave 4: Automation and release readiness
 As of 2026-06-07:
 
 - T1 is complete: `docs/hid-gadget-design.md` and `.sisyphus/evidence/task-1-hid-design-grep.txt` exist.
-- T2 is the next planned task: implement `scripts/setup-hid-gadget.sh`.
+- T2 is complete: `scripts/setup-hid-gadget.sh` and `.sisyphus/evidence/task-2-setup-bash-n.txt` exist.
+- T3 is the next planned task: implement `scripts/teardown-hid-gadget.sh`.
 - Real-device HID validation is pending.
 - 24.04 stock kernel is not HID-ready based on static image inspection.
 - The current safe status is `PRE-HARDWARE PREPARATION`.

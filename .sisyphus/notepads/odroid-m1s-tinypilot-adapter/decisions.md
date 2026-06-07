@@ -14,3 +14,9 @@
 - Create and link keyboard function `hid.usb0` before mouse function `hid.usb1` to preserve `/dev/hidg0` keyboard and `/dev/hidg1` mouse ordering.
 - Keep setup manual until UDC binding, target-host enumeration, and safe teardown are verified on real ODROID M1S hardware.
 - Teardown must unbind `UDC` first and must not use `rm -rf`.
+
+## 2026-06-07 Task: t2-setup-hid-gadget
+
+- `--force` support is intentionally narrow: it may remove only an existing unbound gadget with the same name, using explicit `rm`/`rmdir` steps and never recursive deletion.
+- Setup script keeps UDC selection explicit: use `--udc` for multiple controllers, auto-select only when exactly one UDC is present.
+- Setup script validates `/dev/hidg0` and `/dev/hidg1` after binding instead of assuming configfs creation was enough.
