@@ -1,0 +1,15 @@
+Command:
+
+grep -E 'CONFIG_USB_CONFIGFS|CONFIG_USB_CONFIGFS_F_HID|CONFIG_USB_F_HID' docs/24.04-kernel.md docs/support-matrix.md
+
+Output:
+
+docs/24.04-kernel.md:# CONFIG_USB_CONFIGFS is not set
+docs/24.04-kernel.md:`CONFIG_USB_F_HID` and `CONFIG_USB_CONFIGFS_F_HID` were not present in the config.
+docs/24.04-kernel.md:CONFIG_USB_CONFIGFS=m or y
+docs/24.04-kernel.md:CONFIG_USB_CONFIGFS_F_HID=y
+docs/24.04-kernel.md:CONFIG_USB_F_HID=m or y
+docs/24.04-kernel.md:CONFIG_USB_CONFIGFS=m or y
+docs/24.04-kernel.md:CONFIG_USB_CONFIGFS_F_HID=y
+docs/24.04-kernel.md:CONFIG_USB_F_HID=m or y
+docs/24.04-kernel.md:grep -E 'CONFIG_USB_CONFIGFS=|CONFIG_USB_CONFIGFS_F_HID=|CONFIG_USB_F_HID=' /boot/config-$(uname -r)
