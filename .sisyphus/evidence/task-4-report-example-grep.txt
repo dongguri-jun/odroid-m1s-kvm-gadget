@@ -1,0 +1,28 @@
+Commands:
+
+bash -n examples/*.sh
+if command -v shellcheck >/dev/null 2>&1; then shellcheck examples/*.sh; fi
+grep -nE 'hidg0|hidg1|\\x04|\\xff\\x3f|7-byte|8-byte' examples/*.sh
+
+Output:
+
+bash -n: no output; exit 0
+shellcheck: no output; exit 0
+
+Grep output:
+
+examples/mouse-center-click.sh:4:MOUSE_PATH="${1:-/dev/hidg1}"
+examples/mouse-center-click.sh:11:# TinyPilot-compatible 7-byte absolute mouse report:
+examples/mouse-center-click.sh:16:printf '\x01\xff\x3f\xff\x3f\x00\x00' > "$MOUSE_PATH"
+examples/mouse-center-click.sh:19:printf '\x00\xff\x3f\xff\x3f\x00\x00' > "$MOUSE_PATH"
+examples/mouse-center-move.sh:4:MOUSE_PATH="${1:-/dev/hidg1}"
+examples/mouse-center-move.sh:12:# TinyPilot-compatible 7-byte absolute mouse report.
+examples/mouse-center-move.sh:13:printf '\x00\xff\x3f\xff\x3f\x00\x00' > "$MOUSE_PATH"
+examples/release-keys.sh:4:KEYBOARD_PATH="${1:-/dev/hidg0}"
+examples/release-keys.sh:11:# Release all keyboard keys with an exact 8-byte zero report.
+examples/send-key-a.sh:4:KEYBOARD_PATH="${1:-/dev/hidg0}"
+examples/send-key-a.sh:11:# TinyPilot-compatible 8-byte keyboard report:
+examples/send-key-a.sh:14:printf '\x00\x00\x04\x00\x00\x00\x00\x00' > "$KEYBOARD_PATH"
+examples/send-key-a.sh:16:# Release all keys with another exact 8-byte report.
+
+Note: these examples have not been run against a target host yet. Real target-host input verification remains T7.
