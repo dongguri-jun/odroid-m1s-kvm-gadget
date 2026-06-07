@@ -1,0 +1,13 @@
+Commands:
+
+bash -n scripts/verify-hid-support.sh scripts/setup-hid-gadget.sh scripts/teardown-hid-gadget.sh examples/*.sh tests/test-hid-gadget-fake-root.sh
+shellcheck scripts/verify-hid-support.sh scripts/setup-hid-gadget.sh scripts/teardown-hid-gadget.sh examples/*.sh tests/test-hid-gadget-fake-root.sh
+tests/test-hid-gadget-fake-root.sh
+
+Output:
+
+bash -n: no output; exit 0
+shellcheck: no output; exit 0
+fake-root HID gadget setup/teardown test passed
+
+Oracle re-review: PASS after TEST_MODE gating fixes.

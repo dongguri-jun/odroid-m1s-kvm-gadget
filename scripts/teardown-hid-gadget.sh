@@ -3,15 +3,21 @@ set -euo pipefail
 
 GADGET_NAME="odroid_m1s_kvm"
 GADGET_ROOT="/sys/kernel/config/usb_gadget"
+DEV_ROOT="/dev"
+TEST_ROOT=""
+TEST_MODE=0
 
 usage() {
   cat <<'EOF'
-Usage: teardown-hid-gadget.sh [--gadget-name NAME] [--help]
+Usage: teardown-hid-gadget.sh [--gadget-name NAME] [--test-root DIR] [--help]
 
 Safely remove the manual ODROID M1S TinyPilot-compatible USB HID gadget.
 
 Options:
   --gadget-name NAME  Override the configfs gadget directory name.
+  --test-root DIR     Use DIR as a fake root for non-privileged local tests.
+                      Maps configfs to DIR/sys/kernel/config/usb_gadget and
+                      HID nodes to DIR/dev.
   --help              Show this help.
 
 Safety rules:
@@ -47,6 +53,12 @@ parse_args() {
         validate_gadget_name "$GADGET_NAME"
         shift 2
         ;;
+      --test-root)
+        [[ "$#" -ge 2 ]] || die "--test-root requires a value"
+        TEST_ROOT="$2"
+        TEST_MODE=1
+        shift 2
+        ;;
       *)
         die "unknown argument: $1"
         ;;
@@ -62,7 +74,25 @@ validate_gadget_name() {
   [[ "$name" != *"/"* ]] || die "gadget name must not contain path separators"
 }
 
+configure_paths() {
+  if [[ "$TEST_MODE" -eq 0 ]]; then
+    return 0
+  fi
+
+  [[ -n "$TEST_ROOT" ]] || die "test root must not be empty"
+  TEST_ROOT="${TEST_ROOT%/}"
+  [[ -n "$TEST_ROOT" ]] || die "test root must not be filesystem root"
+
+  GADGET_ROOT="${TEST_ROOT}/sys/kernel/config/usb_gadget"
+  DEV_ROOT="${TEST_ROOT}/dev"
+}
+
 require_root() {
+  if [[ "$TEST_MODE" -eq 1 ]]; then
+    info "test mode enabled; skipping root check"
+    return 0
+  fi
+
   [[ "$(id -u)" -eq 0 ]] || die "root is required because configfs teardown needs privileged writes"
 }
 
@@ -104,11 +134,64 @@ unbind_udc() {
   fi
 }
 
+remove_test_hid_nodes() {
+  if [[ "$TEST_MODE" -eq 0 ]]; then
+    return 0
+  fi
+
+  remove_file_or_link_if_exists "${DEV_ROOT}/hidg1"
+  remove_file_or_link_if_exists "${DEV_ROOT}/hidg0"
+}
+
+remove_test_configfs_attrs() {
+  local gadget_dir="$1"
+
+  if [[ "$TEST_MODE" -eq 0 ]]; then
+    return 0
+  fi
+
+  remove_file_or_link_if_exists "${gadget_dir}/functions/hid.usb1/report_desc"
+  remove_file_or_link_if_exists "${gadget_dir}/functions/hid.usb1/report_length"
+  remove_file_or_link_if_exists "${gadget_dir}/functions/hid.usb1/subclass"
+  remove_file_or_link_if_exists "${gadget_dir}/functions/hid.usb1/protocol"
+
+  remove_file_or_link_if_exists "${gadget_dir}/functions/hid.usb0/report_desc"
+  remove_file_or_link_if_exists "${gadget_dir}/functions/hid.usb0/report_length"
+  remove_file_or_link_if_exists "${gadget_dir}/functions/hid.usb0/subclass"
+  remove_file_or_link_if_exists "${gadget_dir}/functions/hid.usb0/protocol"
+
+  remove_file_or_link_if_exists "${gadget_dir}/configs/c.1/strings/0x409/configuration"
+  remove_file_or_link_if_exists "${gadget_dir}/configs/c.1/MaxPower"
+
+  remove_file_or_link_if_exists "${gadget_dir}/strings/0x409/product"
+  remove_file_or_link_if_exists "${gadget_dir}/strings/0x409/manufacturer"
+  remove_file_or_link_if_exists "${gadget_dir}/strings/0x409/serialnumber"
+
+  remove_file_or_link_if_exists "${gadget_dir}/bcdUSB"
+  remove_file_or_link_if_exists "${gadget_dir}/bcdDevice"
+  remove_file_or_link_if_exists "${gadget_dir}/idProduct"
+  remove_file_or_link_if_exists "${gadget_dir}/idVendor"
+  remove_file_or_link_if_exists "${gadget_dir}/UDC"
+}
+
+remove_test_container_dirs() {
+  local gadget_dir="$1"
+
+  if [[ "$TEST_MODE" -eq 0 ]]; then
+    return 0
+  fi
+
+  remove_dir_if_exists "${gadget_dir}/configs"
+  remove_dir_if_exists "${gadget_dir}/strings"
+  remove_dir_if_exists "${gadget_dir}/functions"
+}
+
 teardown_gadget() {
   local gadget_dir="$1"
 
   if [[ ! -d "$gadget_dir" ]]; then
     info "gadget ${gadget_dir} does not exist; nothing to teardown"
+    remove_test_hid_nodes
     return 0
   fi
 
@@ -117,13 +200,18 @@ teardown_gadget() {
   remove_file_or_link_if_exists "${gadget_dir}/configs/c.1/hid.usb1"
   remove_file_or_link_if_exists "${gadget_dir}/configs/c.1/hid.usb0"
 
+  remove_test_configfs_attrs "$gadget_dir"
+
   remove_dir_if_exists "${gadget_dir}/functions/hid.usb1"
   remove_dir_if_exists "${gadget_dir}/functions/hid.usb0"
 
   remove_dir_if_exists "${gadget_dir}/configs/c.1/strings/0x409"
+  remove_dir_if_exists "${gadget_dir}/configs/c.1/strings"
   remove_dir_if_exists "${gadget_dir}/configs/c.1"
 
   remove_dir_if_exists "${gadget_dir}/strings/0x409"
+  remove_test_container_dirs "$gadget_dir"
+  remove_test_hid_nodes
   remove_dir_if_exists "$gadget_dir"
 }
 
@@ -132,6 +220,7 @@ main() {
 
   parse_args "$@"
   validate_gadget_name "$GADGET_NAME"
+  configure_paths
   require_root
 
   [[ -d "$GADGET_ROOT" ]] || die "$GADGET_ROOT does not exist; configfs may not be mounted or CONFIG_USB_CONFIGFS may be disabled"

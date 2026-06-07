@@ -3,12 +3,16 @@ set -euo pipefail
 
 GADGET_NAME="odroid_m1s_kvm"
 GADGET_ROOT="/sys/kernel/config/usb_gadget"
+UDC_ROOT="/sys/class/udc"
+DEV_ROOT="/dev"
 UDC_NAME=""
 FORCE=0
+TEST_ROOT=""
+TEST_MODE=0
 
 usage() {
   cat <<'EOF'
-Usage: setup-hid-gadget.sh [--udc NAME] [--force] [--gadget-name NAME] [--help]
+Usage: setup-hid-gadget.sh [--udc NAME] [--force] [--gadget-name NAME] [--test-root DIR] [--help]
 
 Create a manual TinyPilot-compatible ODROID M1S USB HID gadget.
 
@@ -17,6 +21,9 @@ Options:
   --force             Remove an existing unbound gadget with the same name first.
                       This never uses recursive deletion and refuses bound gadgets.
   --gadget-name NAME  Override the configfs gadget directory name.
+  --test-root DIR     Use DIR as a fake root for non-privileged local tests.
+                      Maps configfs to DIR/sys/kernel/config/usb_gadget,
+                      UDCs to DIR/sys/class/udc, and HID nodes to DIR/dev.
   --help              Show this help.
 
 Expected outputs after a successful bind:
@@ -60,6 +67,12 @@ parse_args() {
         validate_gadget_name "$GADGET_NAME"
         shift 2
         ;;
+      --test-root)
+        [[ "$#" -ge 2 ]] || die "--test-root requires a value"
+        TEST_ROOT="$2"
+        TEST_MODE=1
+        shift 2
+        ;;
       *)
         die "unknown argument: $1"
         ;;
@@ -75,11 +88,35 @@ validate_gadget_name() {
   [[ "$name" != *"/"* ]] || die "gadget name must not contain path separators"
 }
 
+configure_paths() {
+  if [[ "$TEST_MODE" -eq 0 ]]; then
+    return 0
+  fi
+
+  [[ -n "$TEST_ROOT" ]] || die "test root must not be empty"
+  TEST_ROOT="${TEST_ROOT%/}"
+  [[ -n "$TEST_ROOT" ]] || die "test root must not be filesystem root"
+
+  GADGET_ROOT="${TEST_ROOT}/sys/kernel/config/usb_gadget"
+  UDC_ROOT="${TEST_ROOT}/sys/class/udc"
+  DEV_ROOT="${TEST_ROOT}/dev"
+}
+
 require_root() {
+  if [[ "$TEST_MODE" -eq 1 ]]; then
+    info "test mode enabled; skipping root check"
+    return 0
+  fi
+
   [[ "$(id -u)" -eq 0 ]] || die "root is required because configfs and UDC binding need privileged writes"
 }
 
 load_modules() {
+  if [[ "$TEST_MODE" -eq 1 ]]; then
+    info "test mode enabled; skipping modprobe"
+    return 0
+  fi
+
   if ! command -v modprobe >/dev/null 2>&1; then
     warn "modprobe is unavailable; continuing with currently loaded kernel modules"
     return 0
@@ -95,6 +132,11 @@ load_modules() {
 }
 
 ensure_configfs() {
+  if [[ "$TEST_MODE" -eq 1 ]]; then
+    mkdir -p "$GADGET_ROOT" "$UDC_ROOT" "$DEV_ROOT"
+    return 0
+  fi
+
   [[ -d /sys/kernel/config ]] || die "/sys/kernel/config does not exist"
 
   if [[ ! -d "$GADGET_ROOT" ]] && command -v mount >/dev/null 2>&1; then
@@ -108,9 +150,9 @@ ensure_configfs() {
 list_udcs() {
   local udc
 
-  [[ -d /sys/class/udc ]] || return 0
+  [[ -d "$UDC_ROOT" ]] || return 0
 
-  for udc in /sys/class/udc/*; do
+  for udc in "$UDC_ROOT"/*; do
     [[ -e "$udc" ]] || continue
     basename "$udc"
   done
@@ -119,10 +161,10 @@ list_udcs() {
 select_udc() {
   local count
 
-  [[ -d /sys/class/udc ]] || die "/sys/class/udc does not exist"
+  [[ -d "$UDC_ROOT" ]] || die "$UDC_ROOT does not exist"
 
   if [[ -n "$UDC_NAME" ]]; then
-    [[ -e "/sys/class/udc/${UDC_NAME}" ]] || die "requested UDC '${UDC_NAME}' does not exist under /sys/class/udc"
+    [[ -e "${UDC_ROOT}/${UDC_NAME}" ]] || die "requested UDC '${UDC_NAME}' does not exist under ${UDC_ROOT}"
     printf '%s\n' "$UDC_NAME"
     return 0
   fi
@@ -132,7 +174,7 @@ select_udc() {
 
   case "$count" in
     0)
-      die "no UDC found under /sys/class/udc; check OTG cable, USB role, DTB, and kernel gadget support"
+      die "no UDC found under ${UDC_ROOT}; check OTG cable, USB role, DTB, and kernel gadget support"
       ;;
     1)
       printf '%s\n' "${udcs[0]}"
@@ -220,6 +262,10 @@ create_gadget() {
   local mouse_dir="${gadget_dir}/functions/hid.usb1"
 
   mkdir "$gadget_dir"
+  if [[ "$TEST_MODE" -eq 1 ]]; then
+    touch "${gadget_dir}/UDC"
+    mkdir -p "${gadget_dir}/functions"
+  fi
 
   printf '0x1d6b\n' > "${gadget_dir}/idVendor"
   printf '0x0104\n' > "${gadget_dir}/idProduct"
@@ -259,20 +305,27 @@ bind_gadget() {
   local udc_name="$2"
 
   printf '%s\n' "$udc_name" > "${gadget_dir}/UDC"
+
+  if [[ "$TEST_MODE" -eq 1 ]]; then
+    : > "${DEV_ROOT}/hidg0"
+    : > "${DEV_ROOT}/hidg1"
+  fi
 }
 
 verify_bound_gadget() {
   local gadget_dir="$1"
   local bound_udc
+  local keyboard_node="${DEV_ROOT}/hidg0"
+  local mouse_node="${DEV_ROOT}/hidg1"
 
   bound_udc="$(cat "${gadget_dir}/UDC")"
   [[ -n "$bound_udc" ]] || die "gadget UDC file is empty after bind"
-  [[ -e /dev/hidg0 ]] || die "/dev/hidg0 was not created after bind"
-  [[ -e /dev/hidg1 ]] || die "/dev/hidg1 was not created after bind"
+  [[ -e "$keyboard_node" ]] || die "${keyboard_node} was not created after bind"
+  [[ -e "$mouse_node" ]] || die "${mouse_node} was not created after bind"
 
   info "bound to UDC: ${bound_udc}"
-  info "keyboard node: $(ls -l /dev/hidg0)"
-  info "mouse node: $(ls -l /dev/hidg1)"
+  info "keyboard node: $(ls -l "$keyboard_node")"
+  info "mouse node: $(ls -l "$mouse_node")"
 }
 
 main() {
@@ -281,6 +334,7 @@ main() {
 
   parse_args "$@"
   validate_gadget_name "$GADGET_NAME"
+  configure_paths
   require_root
   load_modules
   ensure_configfs
