@@ -197,7 +197,7 @@ Wave 4: Automation and release readiness
     Evidence: .sisyphus/evidence/task-2-setup-bash-n.txt
   ```
 
-- [ ] 3. Implement manual HID teardown script
+- [x] 3. Implement manual HID teardown script
 
   **What to do**: Create `scripts/teardown-hid-gadget.sh` that unbinds UDC first, removes config symlinks, removes HID function directories, removes config strings/config, removes gadget strings, and removes the gadget directory with idempotent skip behavior.
 
@@ -206,9 +206,9 @@ Wave 4: Automation and release readiness
   **Parallelization**: Can Parallel: PARTIAL | Wave 1 | Blocks: T8, T13 | Blocked By: T1
 
   **Acceptance Criteria**:
-  - [ ] `bash -n scripts/teardown-hid-gadget.sh`
-  - [ ] `shellcheck scripts/teardown-hid-gadget.sh` if shellcheck is available
-  - [ ] Script contains explicit UDC unbind before symlink/function cleanup.
+  - [x] `bash -n scripts/teardown-hid-gadget.sh`
+  - [x] `shellcheck scripts/teardown-hid-gadget.sh` if shellcheck is available
+  - [x] Script contains explicit UDC unbind before symlink/function cleanup.
 
   **QA Scenarios**:
   ```text
@@ -473,7 +473,8 @@ As of 2026-06-07:
 
 - T1 is complete: `docs/hid-gadget-design.md` and `.sisyphus/evidence/task-1-hid-design-grep.txt` exist.
 - T2 is complete: `scripts/setup-hid-gadget.sh` and `.sisyphus/evidence/task-2-setup-bash-n.txt` exist.
-- T3 is the next planned task: implement `scripts/teardown-hid-gadget.sh`.
+- T3 is complete: `scripts/teardown-hid-gadget.sh` and `.sisyphus/evidence/task-3-no-rm-rf.txt` exist.
+- T4 is the next planned task: add HID report examples under `examples/`.
 - Real-device HID validation is pending.
 - 24.04 stock kernel is not HID-ready based on static image inspection.
 - The current safe status is `PRE-HARDWARE PREPARATION`.

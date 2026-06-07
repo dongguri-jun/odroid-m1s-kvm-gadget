@@ -20,3 +20,9 @@
 - `--force` support is intentionally narrow: it may remove only an existing unbound gadget with the same name, using explicit `rm`/`rmdir` steps and never recursive deletion.
 - Setup script keeps UDC selection explicit: use `--udc` for multiple controllers, auto-select only when exactly one UDC is present.
 - Setup script validates `/dev/hidg0` and `/dev/hidg1` after binding instead of assuming configfs creation was enough.
+
+## 2026-06-07 Task: t3-teardown-hid-gadget
+
+- Teardown is idempotent for missing paths and missing gadget state, but it only targets the named gadget directory.
+- Teardown unbinds `UDC` before removing config symlinks or HID function directories.
+- Teardown uses only explicit `rm` for symlinks/files and `rmdir` for directories; recursive deletion remains forbidden.
