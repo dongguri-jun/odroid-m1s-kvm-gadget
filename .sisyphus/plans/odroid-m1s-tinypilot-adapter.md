@@ -219,7 +219,7 @@ Wave 4: Automation and release readiness
     Evidence: .sisyphus/evidence/task-3-no-rm-rf.txt
   ```
 
-- [ ] 4. Add HID report examples
+- [x] 4. Add HID report examples
 
   **What to do**: Add keyboard and mouse report examples under `examples/`, including key `a`, release keys, center click, and center move/click release using TinyPilot-compatible report layouts.
 
@@ -228,9 +228,9 @@ Wave 4: Automation and release readiness
   **Parallelization**: Can Parallel: YES | Wave 1 | Blocks: T7 | Blocked By: T1
 
   **Acceptance Criteria**:
-  - [ ] `examples/send-key-a.sh` exists and writes exactly 8-byte keyboard reports.
-  - [ ] Mouse example writes exactly 7-byte TinyPilot absolute mouse reports.
-  - [ ] All shell examples pass `bash -n`.
+  - [x] `examples/send-key-a.sh` exists and writes exactly 8-byte keyboard reports.
+  - [x] Mouse example writes exactly 7-byte TinyPilot absolute mouse reports.
+  - [x] All shell examples pass `bash -n`.
 
   **QA Scenarios**:
   ```text
@@ -474,7 +474,8 @@ As of 2026-06-07:
 - T1 is complete: `docs/hid-gadget-design.md` and `.sisyphus/evidence/task-1-hid-design-grep.txt` exist.
 - T2 is complete: `scripts/setup-hid-gadget.sh` and `.sisyphus/evidence/task-2-setup-bash-n.txt` exist.
 - T3 is complete: `scripts/teardown-hid-gadget.sh` and `.sisyphus/evidence/task-3-no-rm-rf.txt` exist.
-- T4 is the next planned task: add HID report examples under `examples/`.
+- T4 is complete: HID report examples exist under `examples/`, with `.sisyphus/evidence/task-4-report-example-grep.txt`.
+- T5 is the next planned task: verify kernel and UDC runtime on real ODROID M1S hardware.
 - Real-device HID validation is pending.
 - 24.04 stock kernel is not HID-ready based on static image inspection.
 - The current safe status is `PRE-HARDWARE PREPARATION`.

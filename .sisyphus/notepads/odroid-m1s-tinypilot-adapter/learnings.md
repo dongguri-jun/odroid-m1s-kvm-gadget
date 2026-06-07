@@ -14,3 +14,9 @@
 - TinyPilot keyboard descriptor is compatible with an 8-byte keyboard report: modifier, reserved byte, then up to six keycodes.
 - TinyPilot mouse descriptor uses absolute X/Y coordinates from 0 to 32767 plus vertical and horizontal wheel bytes.
 - Runtime UDC name must be discovered from `/sys/class/udc`; static DTB evidence is not enough to hardcode a bind target.
+
+## 2026-06-07 Task: t4-hid-report-examples
+
+- Keyboard key `a` example uses HID keycode `0x04` in an exact 8-byte report, followed by an exact 8-byte release report.
+- Mouse center examples use TinyPilot-compatible 7-byte absolute mouse reports with center coordinate `0x3fff` encoded as `ff 3f` little-endian for both X and Y.
+- Report examples are syntax/static examples only until T7 verifies target-host input behavior.
