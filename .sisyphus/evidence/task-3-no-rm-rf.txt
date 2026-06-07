@@ -1,0 +1,7 @@
+Command:
+
+grep -n "rm -rf" "scripts/teardown-hid-gadget.sh"
+
+Output:
+
+(no output; exit 1 from grep, confirming no matches)

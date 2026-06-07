@@ -1,0 +1,31 @@
+Commands:
+
+bash -n "scripts/teardown-hid-gadget.sh"
+if command -v shellcheck >/dev/null 2>&1; then shellcheck "scripts/teardown-hid-gadget.sh"; fi
+"scripts/teardown-hid-gadget.sh" --help
+grep -n "rm -rf" "scripts/teardown-hid-gadget.sh"
+grep -nE 'unbind_udc|remove_file_or_link_if_exists|remove_dir_if_exists|rm |rmdir ' "scripts/teardown-hid-gadget.sh"
+
+Output:
+
+bash -n: no output; exit 0
+shellcheck: no output; exit 0
+--help: exit 0
+rm -rf grep: no output; grep exit 1, confirming no matches
+
+Order and cleanup grep output:
+
+60:remove_file_or_link_if_exists() {
+64:    rm "$path"
+71:remove_dir_if_exists() {
+75:    rmdir "$path"
+82:unbind_udc() {
+106:  unbind_udc "$gadget_dir"
+108:  remove_file_or_link_if_exists "${gadget_dir}/configs/c.1/hid.usb1"
+109:  remove_file_or_link_if_exists "${gadget_dir}/configs/c.1/hid.usb0"
+111:  remove_dir_if_exists "${gadget_dir}/functions/hid.usb1"
+112:  remove_dir_if_exists "${gadget_dir}/functions/hid.usb0"
+114:  remove_dir_if_exists "${gadget_dir}/configs/c.1/strings/0x409"
+115:  remove_dir_if_exists "${gadget_dir}/configs/c.1"
+117:  remove_dir_if_exists "${gadget_dir}/strings/0x409"
+118:  remove_dir_if_exists "$gadget_dir"
