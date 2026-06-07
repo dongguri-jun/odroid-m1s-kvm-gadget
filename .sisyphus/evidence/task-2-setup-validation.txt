@@ -1,0 +1,75 @@
+Commands:
+
+bash -n "scripts/setup-hid-gadget.sh"
+if command -v shellcheck >/dev/null 2>&1; then shellcheck "scripts/setup-hid-gadget.sh"; fi
+"scripts/setup-hid-gadget.sh" --help
+grep -E -- "--help|--force|--udc|report_length=8|report_length=7|/dev/hidg0|/dev/hidg1|rm -rf" "scripts/setup-hid-gadget.sh"
+
+Output:
+
+bash -n: no output; exit 0
+shellcheck: no output; exit 0
+
+--help output:
+
+Usage: setup-hid-gadget.sh [--udc NAME] [--force] [--gadget-name NAME] [--help]
+
+Create a manual TinyPilot-compatible ODROID M1S USB HID gadget.
+
+Options:
+  --udc NAME          Bind to a specific UDC from /sys/class/udc.
+  --force             Remove an existing unbound gadget with the same name first.
+                      This never uses recursive deletion and refuses bound gadgets.
+  --gadget-name NAME  Override the configfs gadget directory name.
+  --help              Show this help.
+
+Expected outputs after a successful bind:
+  /dev/hidg0  keyboard, report_length=8
+  /dev/hidg1  mouse, report_length=7
+
+Grep output:
+
+Usage: setup-hid-gadget.sh [--udc NAME] [--force] [--gadget-name NAME] [--help]
+  --udc NAME          Bind to a specific UDC from /sys/class/udc.
+  --force             Remove an existing unbound gadget with the same name first.
+  --help              Show this help.
+  /dev/hidg0  keyboard, report_length=8
+  /dev/hidg1  mouse, report_length=7
+      --help|-h)
+      --force)
+      --udc)
+        [[ "$#" -ge 2 ]] || die "--udc requires a value"
+      die "multiple UDCs found; rerun with --udc NAME"
+    die "existing gadget '${gadget_dir}' is bound; run teardown first instead of --force"
+  [[ "$FORCE" -eq 1 ]] || die "gadget '${gadget_dir}' already exists; use teardown or rerun with --force if it is stale and unbound"
+  [[ -e /dev/hidg0 ]] || die "/dev/hidg0 was not created after bind"
+  [[ -e /dev/hidg1 ]] || die "/dev/hidg1 was not created after bind"
+  info "keyboard node: $(ls -l /dev/hidg0)"
+  info "mouse node: $(ls -l /dev/hidg1)"
+
+Note: the grep command includes the forbidden text `rm -rf` in the search pattern to prove it has no matching script line; all returned lines above are from the allowed alternatives in the same grep expression.
+
+Safety-path grep:
+
+Command:
+
+grep -nE 'GADGET_ROOT|does not exist; check CONFIG_USB_CONFIGFS|/sys/kernel/config does not exist|--help|--force|--udc' scripts/setup-hid-gadget.sh
+
+Output:
+
+5:GADGET_ROOT="/sys/kernel/config/usb_gadget"
+11:Usage: setup-hid-gadget.sh [--udc NAME] [--force] [--gadget-name NAME] [--help]
+16:  --udc NAME          Bind to a specific UDC from /sys/class/udc.
+17:  --force             Remove an existing unbound gadget with the same name first.
+20:  --help              Show this help.
+44:      --help|-h)
+48:      --force)
+52:      --udc)
+53:        [[ "$#" -ge 2 ]] || die "--udc requires a value"
+89:  [[ -d /sys/kernel/config ]] || die "/sys/kernel/config does not exist"
+91:  if [[ ! -d "$GADGET_ROOT" ]] && command -v mount >/dev/null 2>&1; then
+96:  [[ -d "$GADGET_ROOT" ]] || die "$GADGET_ROOT does not exist; check CONFIG_USB_CONFIGFS and configfs mount state"
+134:      die "multiple UDCs found; rerun with --udc NAME"
+156:    die "existing gadget '${gadget_dir}' is bound; run teardown first instead of --force"
+159:  [[ "$FORCE" -eq 1 ]] || die "gadget '${gadget_dir}' already exists; use teardown or rerun with --force if it is stale and unbound"
+274:  gadget_dir="${GADGET_ROOT}/${GADGET_NAME}"

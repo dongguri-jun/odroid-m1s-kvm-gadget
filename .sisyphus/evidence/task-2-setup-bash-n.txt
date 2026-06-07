@@ -1,0 +1,7 @@
+Command:
+
+bash -n "scripts/setup-hid-gadget.sh"
+
+Output:
+
+(no output; exit 0)
