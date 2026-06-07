@@ -1,0 +1,8 @@
+{
+  "active_plan": ".sisyphus/plans/odroid-m1s-tinypilot-adapter.md",
+  "started_at": "2026-06-07T00:00:00+09:00",
+  "plan_name": "odroid-m1s-tinypilot-adapter",
+  "agent": "hephaestus",
+  "task_sessions": {},
+  "notes": "Public scheduling state only. Do not record secrets, local-only access notes, private IPs, passwords, or serial-device details here."
+}
