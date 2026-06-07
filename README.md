@@ -76,6 +76,8 @@ CONFIG_USB_F_HID=m or y
 
 ## Project plan
 
+The detailed schedule is tracked in [`.sisyphus/plans/odroid-m1s-tinypilot-adapter.md`](.sisyphus/plans/odroid-m1s-tinypilot-adapter.md). Supporting decisions, issues, learnings, and problems are tracked under [`.sisyphus/notepads/odroid-m1s-tinypilot-adapter/`](.sisyphus/notepads/odroid-m1s-tinypilot-adapter/).
+
 Phase 1 is adapter-only. This repo first proves that ODROID M1S can provide the same hardware-facing interfaces TinyPilot-style software expects.
 
 1. Verify USB device controller availability on real M1S hardware.
