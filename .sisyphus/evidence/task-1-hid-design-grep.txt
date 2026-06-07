@@ -1,0 +1,44 @@
+Command:
+
+test -s "docs/hid-gadget-design.md" && grep -E "report_length=8|report_length=7|/dev/hidg0|/dev/hidg1|UDC|teardown" "docs/hid-gadget-design.md"
+
+Output:
+
+/dev/hidg0  keyboard HID gadget
+/dev/hidg1  mouse HID gadget
+This design intentionally covers the manual configfs path only. systemd automation comes later, after real-device setup, teardown, and target-host enumeration are verified.
+| Keyboard | `/dev/hidg0` | `hid.usb0` | `report_length=8` | Boot-style USB keyboard |
+| Mouse | `/dev/hidg1` | `hid.usb1` | `report_length=7` | TinyPilot-compatible absolute mouse |
+functions/hid.usb0 -> /dev/hidg0
+functions/hid.usb1 -> /dev/hidg1
+  UDC
+## UDC selection and binding
+The setup script must not assume the UDC name. ODROID M1S static DTB evidence shows the DWC3 controller at `usb@fcc00000`, but the runtime UDC name must be read from the target system.
+1. If `--udc <name>` is provided, bind to that exact UDC after confirming it exists under `/sys/class/udc`.
+2. If no `--udc` is provided and exactly one UDC exists, use it.
+3. If no UDC exists, fail with a clear message and tell the operator to check OTG cable, kernel role, and device-controller support.
+4. If multiple UDCs exist, fail unless `--udc` is provided.
+echo "${udc_name}" > /sys/kernel/config/usb_gadget/odroid_m1s_kvm/UDC
+test -n "$(cat /sys/kernel/config/usb_gadget/odroid_m1s_kvm/UDC)"
+test -e /dev/hidg0
+test -e /dev/hidg1
+report_length=8
+- `report_length=8` matches TinyPilot keyboard writes and common boot keyboard reports.
+report_length=7
+2. Use udev rules or setup-script ownership changes for `/dev/hidg0` and `/dev/hidg1`.
+The setup script should print the resulting ownership and mode of `/dev/hidg0` and `/dev/hidg1` as evidence.
+10. Write keyboard `report_desc` and `report_length=8`.
+12. Write mouse `report_desc` and `report_length=7`.
+15. Select UDC.
+16. Bind UDC.
+17. Verify `/dev/hidg0` and `/dev/hidg1`.
+## Safe teardown order
+The teardown script must unbind the UDC before removing functions or symlinks.
+3. If `UDC` is non-empty, write an empty string to unbind:
+   echo "" > UDC
+The teardown script must not use `rm -rf`. Recursive deletion can hide mistakes and risks deleting unrelated configfs state. Missing paths should be handled as idempotent skips with clear messages.
+| No UDC | Exit non-zero and save blocked evidence |
+| Multiple UDCs without `--udc` | Exit non-zero and list candidates |
+| Existing bound gadget | Exit non-zero unless explicit teardown or `--force` path is used |
+| Missing `/dev/hidg0` or `/dev/hidg1` after bind | Exit non-zero and print configfs/UDC state |
+grep -E "report_length=8|report_length=7|/dev/hidg0|/dev/hidg1|UDC|teardown" docs/hid-gadget-design.md
