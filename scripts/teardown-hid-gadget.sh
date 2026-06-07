@@ -44,6 +44,7 @@ parse_args() {
       --gadget-name)
         [[ "$#" -ge 2 ]] || die "--gadget-name requires a value"
         GADGET_NAME="$2"
+        validate_gadget_name "$GADGET_NAME"
         shift 2
         ;;
       *)
@@ -51,6 +52,14 @@ parse_args() {
         ;;
     esac
   done
+}
+
+validate_gadget_name() {
+  local name="$1"
+
+  [[ -n "$name" ]] || die "gadget name must not be empty"
+  [[ "$name" != "." && "$name" != ".." ]] || die "gadget name must not be '.' or '..'"
+  [[ "$name" != *"/"* ]] || die "gadget name must not contain path separators"
 }
 
 require_root() {
@@ -122,6 +131,7 @@ main() {
   local gadget_dir
 
   parse_args "$@"
+  validate_gadget_name "$GADGET_NAME"
   require_root
 
   [[ -d "$GADGET_ROOT" ]] || die "$GADGET_ROOT does not exist; configfs may not be mounted or CONFIG_USB_CONFIGFS may be disabled"

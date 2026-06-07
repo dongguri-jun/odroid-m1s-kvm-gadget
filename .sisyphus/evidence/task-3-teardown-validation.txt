@@ -29,3 +29,26 @@ Order and cleanup grep output:
 115:  remove_dir_if_exists "${gadget_dir}/configs/c.1"
 117:  remove_dir_if_exists "${gadget_dir}/strings/0x409"
 118:  remove_dir_if_exists "$gadget_dir"
+
+Oracle follow-up patch validation:
+
+Command:
+
+scripts/teardown-hid-gadget.sh --gadget-name '../bad'
+
+grep -nE 'validate_gadget_name|gadget name must not|current_udc=|cat "\$udc_file"' scripts/teardown-hid-gadget.sh
+
+Output:
+
+teardown invalid gadget name: ERROR: gadget name must not contain path separators
+
+Patch-pattern grep output:
+
+46:        validate_gadget_name "$GADGET_NAME"
+56:validate_gadget_name() {
+59:  [[ -n "$name" ]] || die "gadget name must not be empty"
+60:  [[ "$name" != "." && "$name" != ".." ]] || die "gadget name must not be '.' or '..'"
+61:  [[ "$name" != *"/"* ]] || die "gadget name must not contain path separators"
+94:  local current_udc=""
+98:  current_udc="$(cat "$udc_file")"
+131:  validate_gadget_name "$GADGET_NAME"

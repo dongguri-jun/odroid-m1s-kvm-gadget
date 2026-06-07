@@ -73,3 +73,35 @@ Output:
 156:    die "existing gadget '${gadget_dir}' is bound; run teardown first instead of --force"
 159:  [[ "$FORCE" -eq 1 ]] || die "gadget '${gadget_dir}' already exists; use teardown or rerun with --force if it is stale and unbound"
 274:  gadget_dir="${GADGET_ROOT}/${GADGET_NAME}"
+
+Oracle follow-up patch validation:
+
+Commands:
+
+bash -n scripts/setup-hid-gadget.sh scripts/teardown-hid-gadget.sh
+if command -v shellcheck >/dev/null 2>&1; then shellcheck scripts/setup-hid-gadget.sh scripts/teardown-hid-gadget.sh; fi
+scripts/setup-hid-gadget.sh --help
+scripts/teardown-hid-gadget.sh --help
+scripts/setup-hid-gadget.sh --gadget-name '../bad'
+scripts/teardown-hid-gadget.sh --gadget-name '../bad'
+grep -nE '\[\[ -s|current_udc=|cat "\$udc_file"|CONFIG_USB_CONFIGFS_F_HID|CONFIG_USB_F_HID' scripts/setup-hid-gadget.sh scripts/teardown-hid-gadget.sh
+
+Output:
+
+bash -n: no output; exit 0
+shellcheck: no output; exit 0
+setup --help: exit 0
+teardown --help: exit 0
+setup invalid gadget name: ERROR: gadget name must not contain path separators
+teardown invalid gadget name: ERROR: gadget name must not contain path separators
+
+Patch-pattern grep output:
+
+scripts/setup-hid-gadget.sh:161:  local current_udc=""
+scripts/setup-hid-gadget.sh:166:    current_udc="$(cat "$udc_file")"
+scripts/setup-hid-gadget.sh:234:  mkdir "$keyboard_dir" || die "failed to create keyboard HID function; check CONFIG_USB_CONFIGFS_F_HID and CONFIG_USB_F_HID"
+scripts/setup-hid-gadget.sh:243:  mkdir "$mouse_dir" || die "failed to create mouse HID function; check CONFIG_USB_CONFIGFS_F_HID and CONFIG_USB_F_HID"
+scripts/teardown-hid-gadget.sh:94:  local current_udc=""
+scripts/teardown-hid-gadget.sh:98:  current_udc="$(cat "$udc_file")"
+
+Note: no `[[ -s "$udc_file" ]]` matches are present. Runtime missing-configfs behavior is intentionally left for real-device T5/T6 evidence; this pre-hardware evidence confirms the explicit fail path exists.

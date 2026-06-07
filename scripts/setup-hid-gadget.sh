@@ -57,6 +57,7 @@ parse_args() {
       --gadget-name)
         [[ "$#" -ge 2 ]] || die "--gadget-name requires a value"
         GADGET_NAME="$2"
+        validate_gadget_name "$GADGET_NAME"
         shift 2
         ;;
       *)
@@ -64,6 +65,14 @@ parse_args() {
         ;;
     esac
   done
+}
+
+validate_gadget_name() {
+  local name="$1"
+
+  [[ -n "$name" ]] || die "gadget name must not be empty"
+  [[ "$name" != "." && "$name" != ".." ]] || die "gadget name must not be '.' or '..'"
+  [[ "$name" != *"/"* ]] || die "gadget name must not contain path separators"
 }
 
 require_root() {
@@ -149,11 +158,15 @@ remove_path_if_exists() {
 remove_unbound_existing_gadget() {
   local gadget_dir="$1"
   local udc_file="${gadget_dir}/UDC"
+  local current_udc=""
 
   [[ -d "$gadget_dir" ]] || return 0
 
-  if [[ -f "$udc_file" && -s "$udc_file" ]]; then
-    die "existing gadget '${gadget_dir}' is bound; run teardown first instead of --force"
+  if [[ -f "$udc_file" ]]; then
+    current_udc="$(cat "$udc_file")"
+    if [[ -n "$current_udc" ]]; then
+      die "existing gadget '${gadget_dir}' is bound to '${current_udc}'; run teardown first instead of --force"
+    fi
   fi
 
   [[ "$FORCE" -eq 1 ]] || die "gadget '${gadget_dir}' already exists; use teardown or rerun with --force if it is stale and unbound"
@@ -218,7 +231,7 @@ create_gadget() {
   printf 'odroid-m1s-kvm-gadget\n' > "${gadget_dir}/strings/0x409/manufacturer"
   printf 'ODROID M1S TinyPilot-Compatible KVM Gadget\n' > "${gadget_dir}/strings/0x409/product"
 
-  mkdir "$keyboard_dir"
+  mkdir "$keyboard_dir" || die "failed to create keyboard HID function; check CONFIG_USB_CONFIGFS_F_HID and CONFIG_USB_F_HID"
   printf '1\n' > "${keyboard_dir}/protocol"
   printf '1\n' > "${keyboard_dir}/subclass"
   printf '8\n' > "${keyboard_dir}/report_length"
@@ -227,7 +240,7 @@ create_gadget() {
     printf '1\n' > "${keyboard_dir}/no_out_endpoint"
   fi
 
-  mkdir "$mouse_dir"
+  mkdir "$mouse_dir" || die "failed to create mouse HID function; check CONFIG_USB_CONFIGFS_F_HID and CONFIG_USB_F_HID"
   printf '0\n' > "${mouse_dir}/protocol"
   printf '0\n' > "${mouse_dir}/subclass"
   printf '7\n' > "${mouse_dir}/report_length"
@@ -267,6 +280,7 @@ main() {
   local selected_udc
 
   parse_args "$@"
+  validate_gadget_name "$GADGET_NAME"
   require_root
   load_modules
   ensure_configfs
