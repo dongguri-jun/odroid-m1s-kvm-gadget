@@ -152,7 +152,7 @@ Wave 4: Automation and release readiness
 
 ### Wave 1: Pre-hardware design and scripts
 
-- [ ] 1. Define HID configfs design and descriptor contract
+- [x] 1. Define HID configfs design and descriptor contract
 
   **What to do**: Write `docs/hid-gadget-design.md` with the exact configfs tree, gadget identity, UDC binding strategy, keyboard descriptor, TinyPilot-compatible 7-byte absolute mouse descriptor, `/dev/hidg0`/`/dev/hidg1` ordering rules, permissions model, and safe teardown order.
 
@@ -161,9 +161,9 @@ Wave 4: Automation and release readiness
   **Parallelization**: Can Parallel: YES | Wave 1 | Blocks: T2, T3, T4, T11, T13 | Blocked By: none
 
   **Acceptance Criteria**:
-  - [ ] `test -s docs/hid-gadget-design.md`
-  - [ ] Document contains exact strings: `report_length=8`, `report_length=7`, `/dev/hidg0`, `/dev/hidg1`, `UDC`, `teardown`.
-  - [ ] Document explains why TinyPilot default mouse is 7-byte absolute mouse.
+  - [x] `test -s docs/hid-gadget-design.md`
+  - [x] Document contains exact strings: `report_length=8`, `report_length=7`, `/dev/hidg0`, `/dev/hidg1`, `UDC`, `teardown`.
+  - [x] Document explains why TinyPilot default mouse is 7-byte absolute mouse.
 
   **QA Scenarios**:
   ```text
@@ -471,7 +471,8 @@ Wave 4: Automation and release readiness
 
 As of 2026-06-07:
 
-- T1 is the next planned task.
+- T1 is complete: `docs/hid-gadget-design.md` and `.sisyphus/evidence/task-1-hid-design-grep.txt` exist.
+- T2 is the next planned task: implement `scripts/setup-hid-gadget.sh`.
 - Real-device HID validation is pending.
 - 24.04 stock kernel is not HID-ready based on static image inspection.
 - The current safe status is `PRE-HARDWARE PREPARATION`.
